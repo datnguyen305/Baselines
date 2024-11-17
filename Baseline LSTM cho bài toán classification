@@ -1,0 +1,93 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+import numpy as np 
+
+class LSTMClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(LSTMClassifier, self).__init__()
+        self.hidden_size = hidden_size
+        # Khởi tạo lớp LSTM
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+        # Lớp fully connected
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, input_seq):
+        # LSTM trả về output và hidden state (cùng cell state)
+        _, (hidden, _) = self.lstm(input_seq)
+        # Dùng hidden state từ LSTM làm input cho FC
+        output = self.fc(hidden.squeeze(0))
+        return output
+
+class SequenceDataset(DataLoader):
+  def __init__(self, X, y): # X là size_input, y là size_output
+    self.X = torch.tensor(X, dtype=torch.float32)
+    self.y = torch.tensor(y, dtype=torch.long)
+
+  def __len__(self):
+    return len(self.y)
+
+  def __getitem__(self, idx):
+    return self.X[idx], self.y[idx]
+
+def train_model(model, train_loader, criterion, optimizer, num_epochs):
+    model.train()
+    for epoch in range(num_epochs):
+      total_loss = 0
+      for inputs, labels in train_loader:
+        optimizer.zero_grad() #Trong backpropagation, các gradient sẽ được cộng dồn nếu không đặt gradient của các tham số của mô hình về 0
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward() #tính loss
+        optimizer.step() #cập nhật các tham số
+        total_loss += loss.item()
+      print(f"Epoch {epoch+1}/{num_epochs}, Loss: {total_loss/len(train_loader)}")
+
+# Function to evaluate the model
+def evaluate_model(model, test_loader):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    accuracy = 100 * correct / total
+    print(f"Test Accuracy: {accuracy:.2f}%")
+    return accuracy
+
+def generate_dummy_data(num_samples, sequence_length, input_size ,num_classes):
+    X = np.random.rand(num_samples, sequence_length, input_size)
+    y = np.random.randint(0, num_classes, size=num_samples)
+    return X, y
+
+input_size = 10       # Number of features
+hidden_size = 32      # Number of LSTM units
+output_size = 3       # Number of classes
+seq_length = 15       # Sequence length
+batch_size = 16
+num_epochs = 10
+learning_rate = 0.001
+
+# Generate synthetic dataset
+X_train, y_train = generate_dummy_data(1000, seq_length, input_size, output_size)
+X_test, y_test = generate_dummy_data(200, seq_length, input_size, output_size)
+
+# Create Datasets and DataLoaders
+train_dataset = SequenceDataset(X_train, y_train)
+test_dataset = SequenceDataset(X_test, y_test)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+# Initialize model, loss function, and optimizer
+model = LSTMClassifier(input_size, hidden_size, output_size)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr = learning_rate)
+
+# Train and evaluate the model
+train_model(model, train_loader, criterion, optimizer, num_epochs)
+evaluate_model(model, test_loader)
