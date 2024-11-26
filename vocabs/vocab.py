@@ -1,8 +1,12 @@
 import torch
 
+import json
+from collections import Counter
+from builders.vocab_builder import META_VOCAB
 from typing import List
 from .utils import preprocess_sentence
 
+@META_VOCAB.register()
 class Vocab(object):
     def __init__(self, config):
         self.initialize_special_tokens(config)
@@ -22,7 +26,47 @@ class Vocab(object):
         self.unk_idx = 3
 
     def make_vocab(self, config):
-        raise NotImplementedError("The abstract Vocab class must be inherited and implement!")
+        json_dirs = [config.path.train, config.path.dev, config.path.test]
+        counter = Counter()
+        self.max_sentence_length = 0
+        for json_dir in json_dirs:
+            data = json.load(open(json_dir,  encoding='utf-8'))
+            for key in data:
+                item = data[key]
+                source = item["source"]
+                paragraphs = []
+                for para_id in source:
+                    sentences = source[para_id]
+                    para = " ".join(sentences)
+                    paragraphs.append(para)
+                paragraphs = " <nl> ".join(paragraphs)  # <nl> is the new line marker
+                paragraphs = preprocess_sentence(paragraphs)
+                counter.update(paragraphs)
+
+                target = item["target"]
+                target = preprocess_sentence(target)
+                counter.update(target)
+                if self.max_sentence_length < len(target):
+                    self.max_sentence_length = len(target)
+
+        min_freq = max(config.min_freq, 1)
+
+        # sort by frequency, then alphabetically
+        words_and_frequencies = sorted(counter.items(), key=lambda tup: tup[0])
+        words_and_frequencies.sort(key=lambda tup: tup[1], reverse=True)
+        itos = []
+        for word, freq in words_and_frequencies:
+            if freq < min_freq:
+                break
+            itos.append(word)
+        itos = self.specials + itos
+
+        self.itos = {i: tok for i, tok in enumerate(itos)}
+        self.stoi = {tok: i for i, tok in enumerate(itos)}
+    
+    @property
+    def vocab_size(self) -> int:
+        return len(self.stoi)
 
     def encode_sentence(self, sentence: str) -> torch.Tensor:
         """ Turn a sentence into a vector of indices and a sentence length """

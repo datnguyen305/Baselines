@@ -20,7 +20,7 @@ class TextSumDataset(Dataset):
         return len(self._data)
 
     def __getitem__(self, index: int) -> Instance:
-        key = self.keys[index]
+        key = self._keys[index]
         item = self._data[key]
         
         paragraphs = item["source"]
@@ -31,13 +31,11 @@ class TextSumDataset(Dataset):
         encoded_source = self._vocab.encode_sentence(source)
         encoded_target = self._vocab.encode_sentence(target)
 
-        shifted_right_target = torch.zeros_like(encoded_target).fill_(self._vocab.pad_idx)
-        shifted_right_target[:-1] = target[1:]
-        encoded_target = torch.where(encoded_target == self._vocab.eos_idx, self._vocab.pad_idx, encoded_target) # remove eos_token in the target
+        shifted_right_label = encoded_target[1:]
        
         return Instance(
             id = key,
             input_ids = encoded_source,
             label = encoded_target,
-            shifted_right_target = shifted_right_target
+            shifted_right_label = shifted_right_label
         )

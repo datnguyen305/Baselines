@@ -22,8 +22,6 @@ class BaseTask:
         if not os.path.isdir(self.checkpoint_path):
             self.logger.info("Creating checkpoint path")
             os.makedirs(self.checkpoint_path)
-            
-        
 
         if not os.path.isfile(os.path.join(self.checkpoint_path, "vocab.bin")):
             self.logger.info("Creating vocab")
@@ -47,7 +45,6 @@ class BaseTask:
         self.configuring_hyperparameters(config)
         self.optim = Adam(self.model.parameters(), lr=config.training.learning_rate, betas=(0.9, 0.98))
         self.scheduler = LambdaLR(self.optim, self.lambda_lr)
-        self.create_metrics()
 
     def configuring_hyperparameters(self, config):
         raise NotImplementedError
@@ -61,9 +58,6 @@ class BaseTask:
         raise NotImplementedError
 
     def create_dataloaders(self, config):
-        raise NotImplementedError
-    
-    def create_metrics(self):
         raise NotImplementedError
     
     def compute_scores(self, inputs: torch.Tensor, labels: torch.Tensor) -> dict:

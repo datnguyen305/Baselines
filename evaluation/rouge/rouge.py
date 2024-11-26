@@ -101,7 +101,7 @@ class Rouge():
             assert (type(ref) is list)
             assert (len(ref) > 0)
 
-        average_score = np.mean(np.array(score))
+        average_score = np.mean(np.array(score)).item()
         return average_score, np.array(score)
 
     def __str__(self):

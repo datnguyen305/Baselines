@@ -5,7 +5,6 @@ import os
 import subprocess
 import threading
 import tarfile
-from evaluation.utils import download_from_url
 
 METEOR_GZ_URL = 'http://aimagelab.ing.unimore.it/speaksee/data/meteor.tgz'
 METEOR_JAR = 'meteor-1.5.jar'
@@ -16,8 +15,6 @@ class Meteor:
         jar_path = os.path.join(base_path, METEOR_JAR)
         gz_path = os.path.join(base_path, os.path.basename(METEOR_GZ_URL))
         if not os.path.isfile(jar_path):
-            if not os.path.isfile(gz_path):
-                download_from_url(METEOR_GZ_URL, gz_path)
             tar = tarfile.open(gz_path, "r")
             tar.extractall(path=os.path.dirname(os.path.abspath(__file__)))
             tar.close()

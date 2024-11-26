@@ -1,4 +1,3 @@
-from torch import Tensor
 from torch.utils.data import DataLoader
 import os
 import torch
@@ -63,7 +62,7 @@ class TextSumTask(BaseTask):
                 # forward pass
                 input_ids = items.input_ids
         
-                labels = items.label
+                labels = items.shifted_right_label
                 
                 _, loss = self.model(input_ids, labels)
                 
@@ -88,19 +87,19 @@ class TextSumTask(BaseTask):
                 input_ids = items.input_ids
                 label = items.label
                 with torch.no_grad():
-                    logits, _ = self.model(input_ids)
+                    prediction = self.model.predict(input_ids)
 
-                    prediction = logits.argmax(dim=-1)
-                    prediction = self.vocab.decode(prediction)
-                    label = self.vocab.decode(label)
+                    prediction = self.vocab.decode_sentence(prediction)
+                    label = self.vocab.decode_sentence(label)
 
-                    id = items.id.item()
+                    id = items.id[0]
                     gens[id] = prediction
                     gts[id] = label
 
                 pbar.update()
         
         # Calculate metrics
+        self.logger.info("Getting scores")
         scores, _ = evaluation.compute_scores(gts, gens)
     
         return scores, (gens, gts)

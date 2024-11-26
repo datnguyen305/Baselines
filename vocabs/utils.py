@@ -29,9 +29,3 @@ def preprocess_sentence(sentence: str):
     tokens = sentence.strip().split()
 
     return tokens
-
-
-if __name__ == "__main__":
-    setences = "xin chào"
-    preprocess = preprocess_sentence(setences)
-    print(preprocess)
