@@ -119,7 +119,7 @@ class BaseTask:
         while True:
             self.train()
             # val scores
-            scores = self.evaluate_metrics(self.dev_dataloader)
+            scores, _ = self.evaluate_metrics(self.dev_dataloader)
             self.logger.info("Validation scores %s", scores)
             score = scores[self.score]
 

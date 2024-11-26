@@ -56,7 +56,7 @@ class TextSumTask(BaseTask):
         self.model.train()
 
         running_loss = .0
-        with tqdm(desc='Epoch %d - Training' % self.epoch, unit='it', total=len(self.train_dataloader)) as pbar:
+        with tqdm(desc='Epoch %d - Training' % (self.epoch+1), unit='it', total=len(self.train_dataloader)) as pbar:
             for it, items in enumerate(self.train_dataloader):
                 items = items.to(self.device)
                 # forward pass
@@ -81,7 +81,7 @@ class TextSumTask(BaseTask):
         self.model.eval()
         gens = {}
         gts = {}
-        with tqdm(desc='Epoch %d - Evaluating' % self.epoch, unit='it', total=len(dataloader)) as pbar:
+        with tqdm(desc='Epoch %d - Evaluating' % (self.epoch+1), unit='it', total=len(dataloader)) as pbar:
             for items in dataloader:
                 items = items.to(self.device)
                 input_ids = items.input_ids
@@ -114,7 +114,7 @@ class TextSumTask(BaseTask):
         self.model.eval()
         scores, (gens, gts) = self.evaluate_metrics(self.test_dataloader)
         results = {}
-        with tqdm(desc='Epoch %d - Predicting' % self.epoch, unit='it', total=len(gens)) as pbar:
+        with tqdm(desc='Epoch %d - Getting results' % (self.epoch+1), unit='it', total=len(gens)) as pbar:
             for id in gens:
                 gen = gens[id]
                 gt = gts[id]
