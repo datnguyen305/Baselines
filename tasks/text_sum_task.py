@@ -93,14 +93,14 @@ class TextSumTask(BaseTask):
                     label = self.vocab.decode_sentence(label)
 
                     id = items.id[0]
-                    gens[id] = prediction
-                    gts[id] = label
+                    gens[id] = prediction[0]
+                    gts[id] = label[0]
 
                 pbar.update()
         
         # Calculate metrics
         self.logger.info("Getting scores")
-        scores, _ = evaluation.compute_scores(gts, gens)
+        scores = evaluation.compute_scores(gts, gens)
     
         return scores, (gens, gts)
 

@@ -44,9 +44,9 @@ model:
 
 training:
   checkpoint_path: "checkpoints"
-  learning_rate: 0.01
+  learning_rate: 1
   warmup: 1000
   patience: 5
-  score: CIDEr
+  score: rouge-L
 
 task: TextSumTask
