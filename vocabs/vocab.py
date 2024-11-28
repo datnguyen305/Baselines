@@ -33,14 +33,10 @@ class Vocab(object):
             data = json.load(open(json_dir,  encoding='utf-8'))
             for key in data:
                 item = data[key]
-                source = item["source"]
-                paragraphs = []
-                for para_id in source:
-                    sentences = source[para_id]
-                    para = " ".join(sentences)
-                    paragraphs.append(para)
-                paragraphs = " <nl> ".join(paragraphs)  # <nl> is the new line marker
-                paragraphs = preprocess_sentence(paragraphs)
+                paragraphs = item["source"]
+                paragraphs = [" ".join(paragraph) for _, paragraph in paragraphs.items()]
+                source = "<nl>".join(paragraphs) # new line mark
+                paragraphs = preprocess_sentence(source)
                 counter.update(paragraphs)
 
                 target = item["target"]
