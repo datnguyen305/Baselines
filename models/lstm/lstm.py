@@ -7,6 +7,7 @@ from builders.model_builder import META_ARCHITECTURE
 class Encoder(nn.Module):
     def __init__(self, config, vocab: Vocab):
         super().__init__()
+
         self.embedding = nn.Embedding(vocab.vocab_size, config.hidden_size)
         self.lstm = nn.LSTM(
             config.hidden_size,

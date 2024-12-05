@@ -132,7 +132,6 @@ class BaseTask:
             else:
                 patience += 1
 
-            # switch_to_rl = False
             exit_train = False
 
             if patience == self.patience:
